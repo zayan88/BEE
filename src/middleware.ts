@@ -1,7 +1,10 @@
-export { default } from "next-auth/middleware";
+import { withAuth } from "next-auth/middleware";
 
-// Protect the admin dashboard. NextAuth redirects unauthenticated users to
-// the sign-in page configured in authOptions.pages.signIn.
+// Protect the admin dashboard; send unauthenticated users to /login.
+export default withAuth({
+  pages: { signIn: "/login" },
+});
+
 export const config = {
   matcher: ["/admin/:path*"],
 };
