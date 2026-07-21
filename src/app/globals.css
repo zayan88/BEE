@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
+/* ===================== DESIGN TOKENS ===================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gold: #c8932e;
+  --gold-deep: #9a6e18;
+  --honey: #e5a728;
+  --honey-light: #f5d78e;
+  --cream: #fbf7f0;
+  --cream-deep: #f5eddd;
+  --brown: #2c1810;
+  --brown-soft: #5b4636;
+  --white: #ffffff;
+  --green: #4a7c59;
+  --red: #c5453b;
+
+  --radius: 18px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(44, 24, 16, 0.08);
+  --shadow-md: 0 10px 30px rgba(44, 24, 16, 0.1);
+  --shadow-lg: 0 25px 60px rgba(44, 24, 16, 0.15);
+  --shadow-gold: 0 15px 40px rgba(200, 147, 46, 0.3);
+
+  --background: var(--cream);
+  --foreground: var(--brown);
 }
 
 @theme inline {
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-honey: var(--honey);
+  --color-honey-light: var(--honey-light);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-brown: var(--brown);
+  --color-brown-soft: var(--brown-soft);
+  --color-brand-green: var(--green);
+  --color-brand-red: var(--red);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-border: rgba(200, 147, 46, 0.2);
+  --color-input: rgba(200, 147, 46, 0.25);
+  --color-ring: var(--gold);
+  --color-primary: var(--gold);
+  --color-primary-foreground: #ffffff;
+  --color-muted: var(--cream-deep);
+  --color-muted-foreground: var(--brown-soft);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--brown);
+  --color-destructive: var(--red);
+
+  --font-sans: var(--font-tajawal), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cairo), var(--font-tajawal), sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  color: var(--brown);
+  background: var(--cream);
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 1.25;
+  color: var(--brown);
+}
+
+/* ===================== SHARED UTILITIES ===================== */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-md);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--honey), var(--gold-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: right 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.btn-shine:hover::after {
+  right: 100%;
+}
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+}
+.animate-floaty {
+  animation: floaty 8s ease-in-out infinite;
+}
+
+@keyframes softpulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+.animate-softpulse {
+  animation: softpulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar for admin */
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(200, 147, 46, 0.35);
+  border-radius: 999px;
 }
