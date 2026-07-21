@@ -1,28 +1,16 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { getContent } from "@/lib/content";
 import { PROVINCES } from "@/lib/provinces";
 import { BundleView, ProductView } from "@/lib/funnel-types";
-import TopBar from "@/components/landing/TopBar";
-import SiteHeader from "@/components/landing/SiteHeader";
-import Hero from "@/components/landing/Hero";
-import {
-  ProblemSection,
-  SolutionSection,
-  BenefitsSection,
-  IngredientsSection,
-  StepsSection,
-  WhyUsSection,
-} from "@/components/landing/Sections";
-import Reviews from "@/components/landing/Reviews";
-import Faq from "@/components/landing/Faq";
-import OrderExperience from "@/components/landing/OrderExperience";
-import StickyCta from "@/components/landing/StickyCta";
-import Footer from "@/components/landing/Footer";
+import LandingClient from "@/components/landing/LandingClient";
 import ViewContentTracker from "@/components/tracking/ViewContentTracker";
+import "./landing.css";
 
 export const dynamic = "force-dynamic";
+
+const DEFAULT_DISCLAIMER =
+  "هذا المنتج هو منتج عناية يومية وليس دواءً طبياً ولا يُعتمد عليه لعلاج أو شفاء أو تشخيص أي حالة صحية. النتائج تختلف من شخص لآخر. في حال وجود حالة صحية معينة أو حساسية من أي من المكونات، يُرجى استشارة مختص قبل الاستعمال. تابع جميع التعليمات المدونة على العبوة.";
 
 async function getProduct(slug: string) {
   return prisma.product.findUnique({
@@ -33,7 +21,7 @@ async function getProduct(slug: string) {
       reviews: {
         where: { approved: true },
         orderBy: { position: "asc" },
-        take: 9,
+        take: 12,
       },
       upsells: { where: { active: true }, orderBy: { position: "asc" }, take: 1 },
     },
@@ -81,7 +69,6 @@ export default async function ProductFunnelPage(props: {
   const product = await getProduct(slug);
   if (!product || !product.active) notFound();
 
-  const content = getContent(product.content);
   const settings = await prisma.siteSettings
     .findUnique({ where: { id: "default" } })
     .catch(() => null);
@@ -108,13 +95,15 @@ export default async function ProductFunnelPage(props: {
     isPopular: b.isPopular,
   }));
 
+  const storeName = settings?.storeName ?? product.name;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.metaDescription || product.tagline || product.name,
     image: product.ogImage ? [product.ogImage] : undefined,
-    brand: { "@type": "Brand", name: settings?.storeName ?? "متجر" },
+    brand: { "@type": "Brand", name: storeName },
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: product.rating,
@@ -131,10 +120,11 @@ export default async function ProductFunnelPage(props: {
     },
   };
 
-  const storeName = settings?.storeName ?? product.name;
+  const stockLeft =
+    product.stock > 0 && product.stock < 50 ? product.stock : 18;
 
   return (
-    <div className="pb-24 lg:pb-0">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -144,45 +134,29 @@ export default async function ProductFunnelPage(props: {
         value={product.price}
         name={product.name}
       />
-      <TopBar items={content.topbar ?? []} />
-      <SiteHeader name={storeName} />
-      <main>
-        <Hero
-          product={productView}
-          content={content}
-          tagline={product.tagline}
-          heroBadge={product.heroBadge}
-          rating={product.rating}
-          ratingCount={product.ratingCount}
-          image={product.images[0]?.url}
-        />
-        <ProblemSection data={content.problem} />
-        <SolutionSection data={content.solution} />
-        <BenefitsSection data={content.benefits} />
-        <IngredientsSection data={content.ingredients} />
-        <StepsSection data={content.steps} />
-        <WhyUsSection data={content.whyus} />
-        <Reviews
-          reviews={product.reviews.map((r) => ({
-            id: r.id,
-            author: r.author,
-            location: r.location,
-            rating: r.rating,
-            body: r.body,
-          }))}
-          rating={product.rating}
-          ratingCount={product.ratingCount}
-        />
-        <OrderExperience
-          product={productView}
-          bundles={bundles}
-          provinces={PROVINCES}
-          hasUpsell={product.upsells.length > 0}
-        />
-        <Faq data={content.faq} />
-      </main>
-      <Footer name={storeName} phone={settings?.supportPhone} />
-      <StickyCta price={product.price} symbol={product.currencySymbol} />
-    </div>
+      <LandingClient
+        storeName={storeName}
+        brandEmoji="🐝"
+        product={productView}
+        bundles={bundles}
+        provinces={PROVINCES}
+        reviews={product.reviews.map((r) => ({
+          id: r.id,
+          author: r.author,
+          location: r.location,
+          rating: r.rating,
+          body: r.body,
+        }))}
+        rating={product.rating}
+        ratingCount={product.ratingCount}
+        hasUpsell={product.upsells.length > 0}
+        tagline={product.tagline}
+        heroBadge={product.heroBadge}
+        heroImage={product.images[0]?.url}
+        solutionImage={product.images[1]?.url ?? product.images[0]?.url}
+        stockLeft={stockLeft}
+        disclaimer={DEFAULT_DISCLAIMER}
+      />
+    </>
   );
 }
